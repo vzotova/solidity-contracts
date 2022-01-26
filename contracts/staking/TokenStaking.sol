@@ -809,8 +809,7 @@ contract TokenStaking is Initializable, IStaking, Checkpoints {
         );
         stakingProviderStruct.tStake -= amount;
         require(
-            stakingProviderStruct.nuInTStake != 0 ||
-                stakingProviderStruct.keepInTStake != 0 ||
+                minTStakeAmount != 0 &&
                 stakingProviderStruct.tStake >= minTStakeAmount ||
                 stakingProviderStruct.startStakingTimestamp + MIN_STAKE_TIME <=
                 /* solhint-disable-next-line not-rely-on-time */
@@ -845,6 +844,12 @@ contract TokenStaking is Initializable, IStaking, Checkpoints {
         require(
             getMinStaked(stakingProvider, StakeType.KEEP) == 0,
             "Keep stake still authorized"
+        );
+        require(
+                stakingProviderStruct.startStakingTimestamp + MIN_STAKE_TIME <=
+                /* solhint-disable-next-line not-rely-on-time */
+                block.timestamp,
+            "Can't unstake earlier than 24h"
         );
         emit Unstaked(stakingProvider, keepInTStake);
         stakingProviderStruct.keepInTStake = 0;
@@ -886,9 +891,6 @@ contract TokenStaking is Initializable, IStaking, Checkpoints {
         );
         stakingProviderStruct.nuInTStake -= amount;
         require(
-            (stakingProviderStruct.tStake >= minTStakeAmount &&
-                minTStakeAmount != 0) ||
-                stakingProviderStruct.keepInTStake != 0 ||
                 stakingProviderStruct.nuInTStake > 0 ||
                 stakingProviderStruct.startStakingTimestamp + MIN_STAKE_TIME <=
                 /* solhint-disable-next-line not-rely-on-time */
@@ -917,9 +919,7 @@ contract TokenStaking is Initializable, IStaking, Checkpoints {
             "Stake still authorized"
         );
         require(
-            ((stakingProviderStruct.tStake == 0 || minTStakeAmount == 0) &&
-                stakingProviderStruct.nuInTStake == 0) ||
-                stakingProviderStruct.startStakingTimestamp + MIN_STAKE_TIME <=
+            stakingProviderStruct.startStakingTimestamp + MIN_STAKE_TIME <=
                 /* solhint-disable-next-line not-rely-on-time */
                 block.timestamp,
             "Can't unstake earlier than 24h"
